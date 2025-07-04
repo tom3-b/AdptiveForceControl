@@ -32,9 +32,9 @@ double fd_force_sfun(double sfun_time)
     // % t: 时间向量
     // % t_start: 开始时间
     // % t_end: 结束时间
-    double A = 0.4;
+    double A = -0.5;
     double t_start = 0;
-    double t_end = 1;
+    double t_end = 2;
     double y = 0;
     double t = sfun_time;
     // % 对于t < t_start的部分
@@ -56,8 +56,37 @@ double fd_force_sfun(double sfun_time)
         // % 五次多项式: s(t) = 6t^5 - 15t^4 + 10t^3
         y = 6 * pow(tau, 5) - 15 * pow(tau, 4) + 10 * pow(tau, 3);
     }
-    y = A * y + 0.02;
+    y = A * y;
     return y;
+    /*
+    A = -0.5;
+t_start = 0.1;
+t_end = 2.1;
+y=0;
+% 对于t < t_start的部分
+if(t <= t_start)
+y = 0;
+end
+% 对于t > t_end的部分
+if(t >= t_end)
+y = 1;
+end
+% 对于t_start <= t <= t_end的部分
+if((t >= t_start) && (t <= t_end))
+    % 归一化时间到[0,1]区间
+    tau = (t - t_start) / (t_end - t_start);
+    % 五次多项式: s(t) = 6t^5 - 15t^4 + 10t^3
+    y = 6*tau.^5 - 15*tau.^4 + 10*tau.^3;
+end
+%正弦
+A_s=0.1;
+f=1;
+delt=0;
+if(t >= t_end)
+    delt=A_s*sin(2*pi*f*(t-t_end));
+end
+y = A*y + delt; 
+    */
 }
 
 // 保存数据到文件

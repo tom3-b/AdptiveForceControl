@@ -74,54 +74,25 @@ static volatile int run = 1;
 
 Motor_var voice_mot_var;
 int smc_enable = 0;
-/****************************************滑膜控制算法*************************************/
+/****************************************自适应控制算法*************************************/
+double alefa = 80;
+double gama = 0.2;
+double bta = 0.0001;
+double md = 10, bd = 1000;
+double d = 0;
+double f = 0, df = 0, f_prev = 0;
+double u=0;
 int cycle_counter = 0;
 int counter = 0;
 double smc_time = 0;
 int32_t x_init = 0;
 double fd = 0;
 double fe = 0;
-double T = 0.57;
-double m_i = 0.6;
-double b_i = 30;
-double k_i = 6;
-double k_f = 18;
-double K_f = k_f / m_i;
-double B_i = b_i / m_i;
-double K_i = k_i / m_i;
-double alefa = 49.7992;
-double Tao = 0.2008;
-double k1 = 160;
-double k2 = 0.1;
-double rou = 0.95;
-double gama = 0.01;
-double Ks_max = 2;
-double ke = 100;
-double be = 0.8;
-double xe = 0;
-double n = 1;
-double m_n = 0.1;
-double b_n = 0.1;
-double k_n = 0;
-std::vector<double> el;
-/*xd dxd ddxd*/
-double xd = 0;
-double dxd = 0;
-double ddxd = 0;
 /*x dx*/
 double x = 0;
 double dx = 0;
-double acc = 0;
-double ef = 0;
-std::vector<double> ef_vec;
-double z = 0;
-double sigma = 0, u = 0;
-int32_t u_p = 0;
-double f = 1;
-double z_integal = 0;
-double sigz_integal = 0;
-double Ks = 0;
-double dKs = 0;
+double ddx = 0;
+
 
 /****************************************************************************/
 
@@ -244,48 +215,21 @@ void SMC_CONTROL()
     fd = fd_force_sfun(smc_time);
     /*fe*/
     fe = -shared_buf->f[2]; // fz
-
-    // if (x <= 0.0005)
-    // {
-    //     fe = 0.02;
-    // }
-    // if (x > 0.0005)
-    // {
-    //     fe = ke * pow((x - xe), n) + be * pow((x - xe), n) * dx + 0.02;
-    // }
-
-    /*ep dep*/
-    double ep = x - xd;
-    double dep = dx - dxd;
-    /*S*/
-    ef = fe - fd;
-    ef_vec.push_back(ef);
-    /*f(t) = 30 * ∫₀ᵗ e^(-0.02(t-τ)) * L⁻¹{ef(s)}(τ) dτ*/
-    el = calculateResponseStateSpace(ef_vec);
-    /*z*/
-    z = dep + alefa * ep + el.back();
-    z_integal += k1 * z * 0.001;
-    sigz_integal += k1 * k2 * pow(abs(z), rou) * sign(z) * 0.001;
-    /*sigma*/
-    sigma = z + z_integal + sigz_integal;
-    /*Ks*/
-    /*Ks*/
-    double xdot = gama / m_n * abs(sigma);
-    if ((Ks >= Ks_max) && (xdot > 0))
-    {
-        dKs = 0;
-    }
-    else
-    {
-        dKs = xdot;
-    }
-    Ks += dKs * 0.001;
-    u = m_n / T * (ddxd - alefa * dep - K_f * ef + Tao * el.back() - k1 * z - k1 * k2 * pow(abs(z), rou) * sign(z)) + 1 / T * (b_n * dx + k_n * x + fe - Ks * sign(sigma));
-    /*voice motor*/
-    acc = (T * u - fe - b_n * dx - k_n * x) / m_n;
-    dx += acc * 0.001;
-    x += dx * 0.001;
-    /*env*/
+    f = fd - fe;
+    df = (f - f_prev) / 0.001;
+    d = d + bta * (-u + f - d) * 0.001;
+    /* u
+    function y = sfun(d,f,df)
+    alefa=80;
+    gama=0.2;
+    y = -d+1.0*f-alefa*f-gama*df;
+    end
+    */
+    u = -d + 1.0 * f - alefa * f - gama * df;
+    ddx = (u - f - bd * dx) / md;
+    dx = dx + ddx * 0.001;
+    x = x + dx * 0.001;
+    f_prev = f;
     smc_time += 0.001;
 }
 /*****************************************************************************
@@ -564,14 +508,13 @@ void cycle_cmd()
     data_recoder.data[counter][1] = (double)voice_mot_var.act_volecty;
     data_recoder.data[counter][2] = (double)voice_mot_var.act_torque;
     data_recoder.data[counter][3] = (double)voice_mot_var.state;
-    data_recoder.data[counter][4] = (double)z;
-    data_recoder.data[counter][5] = (double)u;
-    data_recoder.data[counter][6] = (double)x;
-    data_recoder.data[counter][7] = (double)dx;
-    data_recoder.data[counter][8] = (double)fd;
-    data_recoder.data[counter][9] = (double)fe;
-    data_recoder.data[counter][10] = (double)Ks;
-    data_recoder.data[counter][11] = (double)sigma;
+    data_recoder.data[counter][4] = u;
+    data_recoder.data[counter][5] = x;
+    data_recoder.data[counter][6] = dx;
+    data_recoder.data[counter][7] = ddx;
+    data_recoder.data[counter][8] = fd;
+    data_recoder.data[counter][9] = fe;
+    data_recoder.data[counter][10] = d;
     counter++;
     /*使能电机*/
     if (voice_mot_var.state == 0x0250)
@@ -581,12 +524,10 @@ void cycle_cmd()
     if (voice_mot_var.state == 0x0231)
     {
         EC_WRITE_U16(domain1_pd + elmo_pdo_entry.control_wd, 0x07);
-        EC_WRITE_S32(domain1_pd + elmo_pdo_entry.act_position,voice_mot_var.act_position);
-        EC_WRITE_S32(domain1_pd + elmo_pdo_entry.position_offset, 0);
     }
     if (voice_mot_var.state == 0x0233)
     {
-        EC_WRITE_S32(domain1_pd + elmo_pdo_entry.act_position,voice_mot_var.act_position);
+        EC_WRITE_S32(domain1_pd + elmo_pdo_entry.act_position, voice_mot_var.act_position);
         EC_WRITE_S32(domain1_pd + elmo_pdo_entry.position_offset, 0);
         EC_WRITE_U16(domain1_pd + elmo_pdo_entry.control_wd, 0x010f);
     }
@@ -616,7 +557,7 @@ void cycle_cmd()
     //     std::call_once(smc_init_flag, []()
     //                    {
     //     x_init = voice_mot_var.act_position;
-    //     smc_time = 0; 
+    //     smc_time = 0;
     //     EC_WRITE_U16(domain1_pd + elmo_pdo_entry.control_wd,0x0F); });
     //     EC_WRITE_S32(domain1_pd + elmo_pdo_entry.tar_position, x_init);
     //     EC_WRITE_S32(domain1_pd + elmo_pdo_entry.position_offset, 0);

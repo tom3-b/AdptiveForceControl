@@ -1,0 +1,4 @@
+/home/az/Documents/git-adptiveforcecontrol/AdptiveForceControl/build/CMakeFiles/rebuild_cache.dir
+/home/az/Documents/git-adptiveforcecontrol/AdptiveForceControl/build/CMakeFiles/edit_cache.dir
+/home/az/Documents/git-adptiveforcecontrol/AdptiveForceControl/build/CMakeFiles/nano_thread.dir
+/home/az/Documents/git-adptiveforcecontrol/AdptiveForceControl/build/CMakeFiles/xeno_posix.dir
