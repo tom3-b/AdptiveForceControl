@@ -96,10 +96,6 @@ slave.h
 Nano.h
 /home/az/Documents/git-adptiveforcecontrol/AdptiveForceControl/Nano.h
 
-/home/az/Documents/git-adptiveforcecontrol/AdptiveForceControl/source/Nano.cpp
-Nano.h
-/home/az/Documents/git-adptiveforcecontrol/AdptiveForceControl/source/Nano.h
-
 /usr/xenomai/include/cobalt/fcntl.h
 cobalt/wrappers.h
 -

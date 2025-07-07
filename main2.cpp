@@ -73,7 +73,7 @@ void *nano_cyclic(void *arg)
     memset(&server_addr, 0, sizeof(server_addr));           // 清零地址结构
     server_addr.sin_family = AF_INET;                       // 设置地址族为IPv4
     server_addr.sin_port = htons(49152);                    // 设置端口号（主机字节序转网络字节序）
-    server_addr.sin_addr.s_addr = inet_addr("192.168.1.1"); // 设置IP地址
+    server_addr.sin_addr.s_addr = inet_addr("192.168.2.1"); // 设置IP地址
     /*启动nano发送*/
     // 准备要发送的数据
     nano_request.command_header = htons(0x1234);
