@@ -214,7 +214,7 @@ void SMC_CONTROL()
     /*fd*/
     fd = fd_force_sfun(smc_time);
     /*fe*/
-    fe = -shared_buf->f[2]; // fz
+    fe = shared_buf->f[2]; // fz
     f = fd - fe;
     df = (f - f_prev) / 0.001;
     d = d + bta * (-u + f - d) * 0.001;

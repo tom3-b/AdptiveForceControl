@@ -32,7 +32,7 @@ double fd_force_sfun(double sfun_time)
     // % t: 时间向量
     // % t_start: 开始时间
     // % t_end: 结束时间
-    double A = -0.5;
+    double A = -0.4;
     double t_start = 0;
     double t_end = 2;
     double y = 0;
