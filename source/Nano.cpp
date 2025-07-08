@@ -59,10 +59,10 @@ double fd_force_sfun(double sfun_time)
     double A_s = 0.06;
     double f = 1;
     double delt = 0;
-    if (t >= t_end)
-    {
-        delt = A_s * sin(2 * M_PI * f * (t - t_end));
-    }
+    // if (t >= t_end)
+    // {
+    //     delt = A_s * sin(2 * M_PI * f * (t - t_end));
+    // }
 
     y = A * y + delt;
     return y;

@@ -75,7 +75,7 @@ static volatile int run = 1;
 Motor_var voice_mot_var;
 int smc_enable = 0;
 /****************************************自适应控制算法*************************************/
-double alefa = 50;
+double alefa = 60;
 double gama = 0.2;
 double bta = 0.0001;
 double md = 10, bd = 1000;
