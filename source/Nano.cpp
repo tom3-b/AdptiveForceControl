@@ -8,7 +8,6 @@ NanoUDP::~NanoUDP()
 {
 }
 
-
 int NanoUDP::init()
 {
     // 创建UDP套接字
@@ -56,41 +55,22 @@ double fd_force_sfun(double sfun_time)
         // % 五次多项式: s(t) = 6t^5 - 15t^4 + 10t^3
         y = 6 * pow(tau, 5) - 15 * pow(tau, 4) + 10 * pow(tau, 3);
     }
-    y = A * y;
+    // 正弦
+    double A_s = 0.06;
+    double f = 1;
+    double delt = 0;
+    if (t >= t_end)
+    {
+        delt = A_s * sin(2 * M_PI * f * (t - t_end));
+    }
+
+    y = A * y + delt;
     return y;
-    /*
-    A = -0.5;
-t_start = 0.1;
-t_end = 2.1;
-y=0;
-% 对于t < t_start的部分
-if(t <= t_start)
-y = 0;
-end
-% 对于t > t_end的部分
-if(t >= t_end)
-y = 1;
-end
-% 对于t_start <= t <= t_end的部分
-if((t >= t_start) && (t <= t_end))
-    % 归一化时间到[0,1]区间
-    tau = (t - t_start) / (t_end - t_start);
-    % 五次多项式: s(t) = 6t^5 - 15t^4 + 10t^3
-    y = 6*tau.^5 - 15*tau.^4 + 10*tau.^3;
-end
-%正弦
-A_s=0.1;
-f=1;
-delt=0;
-if(t >= t_end)
-    delt=A_s*sin(2*pi*f*(t-t_end));
-end
-y = A*y + delt; 
-    */
 }
 
 // 保存数据到文件
-int saveToFile(const DataMatrix *matrix) {
+int saveToFile(const DataMatrix *matrix)
+{
     time_t current_time;
     struct tm *time_info;
     char filename[100];
@@ -100,21 +80,25 @@ int saveToFile(const DataMatrix *matrix) {
     // 格式化时间为文件名 (例如: 2024-01-15_14-30-25.txt)
     strftime(filename, sizeof(filename), "%Y-%m-%d_%H-%M-%S.txt", time_info);
     FILE *file = fopen(filename, "w");
-    if (file == NULL) {
+    if (file == NULL)
+    {
         printf("无法创建文件: %s\n", filename);
         return 0;
     }
-    
-    for (int i = 0; i < matrix->rows; i++) {
-        for (int j = 0; j < matrix->cols; j++) {
-            fprintf(file, "%.2f", matrix->data[i][j]);
-            if (j < matrix->cols - 1) {
+
+    for (int i = 0; i < matrix->rows; i++)
+    {
+        for (int j = 0; j < matrix->cols; j++)
+        {
+            fprintf(file, "%.6f", matrix->data[i][j]);
+            if (j < matrix->cols - 1)
+            {
                 fprintf(file, " ");
             }
         }
         fprintf(file, "\n");
     }
-    
+
     fclose(file);
     printf("数据已保存到: %s\n", filename);
     return 1;
